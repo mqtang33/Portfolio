@@ -48,21 +48,120 @@
 	<section class="section">
 		<div class="container">
 			<div class="project-content">
-				<div class="project-image-large">
-					<img src="images/pic03.jpg" alt="FPGA Rhythm Game" />
-				</div>
-				
 				<div class="project-description">
 					<h2>Overview</h2>
-					<p>Architected a fully functional rhythm game from scratch, designing 12 custom Register Transfer Level (RTL) modules in SystemVerilog for a Spartan-7 FPGA.</p>
+					<div class="overview-with-image">
+						<div class="overview-text">
+							<p class="collaboration-note">This project was completed in collaboration with <strong>Daniel Zhou</strong>.</p>
+							<p>A vertical scrolling rhythm game (VSRG) similar to osu!mania was implemented for a class project. The game includes a title screen, a song selection screen, the main game screen, and winning/losing screens. A total of three songs with their respective charts are playable.</p>
+							
+							<h3>Gameplay Mechanics</h3>
+							<ul class="project-features">
+								<li>During the game screen, audio is loaded into DDR3 via an SD card, using raw audio files in <code>.wav</code> format.</li>
+								<li>There are four vertical play lanes, bound to keys D, F, J, and K.</li>
+								<li>Players must hit the corresponding keys for falling notes to gain points.</li>
+								<li>A score counter is displayed on the top right of the screen.</li>
+								<li>After a song ends, a different ending screen appears based on whether the player passes or fails.</li>
+							</ul>
+						</div>
+						<div class="project-image-small">
+							<img src="images/FPGA1.png" alt="FPGA Rhythm Game - State Diagram" />
+						</div>
+					</div>
 				</div>
 
 				<div class="project-details-section">
-					<h2>Key Features</h2>
+					<h2>Game States</h2>
+					
+					<h3>Title/Song Select State</h3>
+					<p>This is the initial state of the game. In this state, the game displays its title and a list of songs for selection. The program waits for the SD card to complete copying data into DDR3 before allowing the player to proceed. The completion of the SD card copying/data initialization is indicated by a green debug LED on the board. To select a song and transition to the "Initialise Game" state, the user must press a number key (1, 2, or 3) corresponding to the desired song.</p>
+					
+					<p><strong>Available Songs:</strong></p>
+					<ol>
+						<li>Eden – Gram</li>
+						<li>Chronicle – Lime</li>
+						<li>INTERNET YAMERO – aiobahn</li>
+					</ol>
+					
+					<div class="project-image-small">
+						<img src="images/FPGA2.png" alt="FPGA Rhythm Game - Title and Song Selection Screen" />
+					</div>
+
+					<h3>Initialise Game State</h3>
+					<p>This game state has no display output and is present for a few clock cycles. Its purpose is to initialise DDR3 and map ROM addresses.</p>
+
+					<h3>Game State</h3>
+					<p>This state is where most gameplay occurs, reading from map ROM and DDR3 for map data and track playback. It also enables a counter based on player accuracy, with inputs being judged.</p>
+					
+					<p>There are four possible judgements:</p>
 					<ul class="project-features">
-						<li>Designed a VGA controller with a 460KB frame buffer to render real-time 640x480 graphics at 60Hz, and integrated custom SPI and USB modules for interfacing with a game controller or other peripherals.</li>
-						<li>Implemented a dedicated audio module to parse and play back 44.1kHz, 8-bit unsigned stereo .wav files from an SD card, using DDR3 memory as a buffer.</li>
+						<li><strong>Perfect</strong> (gold) - Highest accuracy</li>
+						<li><strong>Good</strong> (orange) - Good accuracy</li>
+						<li><strong>Bad</strong> (green) - Acceptable accuracy</li>
+						<li><strong>Miss</strong> (no colour) - No hit</li>
 					</ul>
+					<p>These colours flash briefly on screen to indicate input accuracy. Each judgement awards a score, which aggregates into a running total displayed on the top right of the screen.</p>
+
+					<h3>Pass/Fail Ending Screen</h3>
+					<p>The ending screen varies based on the score. If the score exceeds a threshold (100 for the demo), a "passing screen" is shown; otherwise, a "failing screen" is displayed. Both screens return to the title/song selection screen after being dismissed with the Enter Key.</p>
+					
+					<div class="project-images-side-by-side">
+						<div class="project-image-half">
+							<img src="images/FPGA3.png" alt="FPGA Rhythm Game - Passing Screen" />
+						</div>
+						<div class="project-image-half">
+							<img src="images/FPGA4.png" alt="FPGA Rhythm Game - Failing Screen" />
+						</div>
+					</div>
+				</div>
+
+				<div class="project-details-section">
+					<h2>Circuit Subcomponents</h2>
+					
+					<h3>Game Data and Judgement Subcomponent</h3>
+					<p>This subcomponent handles all calculations and timing related to gameplay, distinguishing it from previous game logic that managed game states.</p>
+					
+					<h4>Game Data Storage</h4>
+					<p>Game data is stored in a map ROM, similar in format to a font ROM used in "lab 7." Note positions are recorded as four 1000-bit binary strings, one for each lane.</p>
+					
+					<h4>Gameplay Synchronization and Scrolling</h4>
+					<p>Gameplay is synchronized with the song using the same clock as the audio counter, divided by a factor of 12. A counter is used to activate the game scroll by one tick after a certain threshold is reached. Notes currently displayed on screen are passed to the state machine as a 24-bit string named <code>map_data</code>.</p>
+					
+					<h4>Game Judgement</h4>
+					<p>Judgement is performed using the same counter that drives the game. The time difference between a note reaching the judgement line and the player's keypress is calculated by subtracting the current count from the 'scroll count'. This time difference is used to allocate a specific score to the player.</p>
+					
+					<h4>Score Counter</h4>
+					<p>A simple counter sums the score based on the judgement signal. The score is displayed on screen in a format similar to text in "Lab 7." A <code>font_rom</code> stores pixel data for characters, and the score is translated into an index for this <code>font_rom</code> using an indexing scheme similar to "lab 7_1."</p>
+
+					<h3>Audio Subcomponent</h3>
+					<p>The audio subcomponent for the rhythm game FPGA design is described as rudimentary. It uses an "RTL SD to DDR3 sample design" provided by Professor Zuofu Cheng as a starting point for reading data from an SD card. This sample design copies all data from the SD card to the on-board DDR3 and illuminates an indicator LED upon completion.</p>
+					
+					<h4>Audio Output Format</h4>
+					<p>The <code>.wav</code> file format was chosen for audio output due to its simplicity as an uncompressed raw file format. The specific version used had data written in 8-bit unsigned stereo with a 44.1 kHz sample rate.</p>
+					
+					<h4>Reasons for Format Choice</h4>
+					<ul class="project-features">
+						<li>8-bit was small enough to meet timing requirements for the PWM counter.</li>
+						<li>It represented the largest <code>.wav</code> file size that could be output as unsigned.</li>
+						<li>Using an unsigned format allowed the developers to avoid issues with endianness and 2's complement conversion, which were problems encountered with 16-bit signed values.</li>
+					</ul>
+					
+					<h4>Sound Reproduction</h4>
+					<p>To reproduce sound from raw data, the data is fed into a PWM generator. This generator produces an output of 1 if its internal counter is below the sample data value, and 0 if it is above. This process is repeated for both audio channels to produce a stereo output.</p>
+				</div>
+
+				<div class="project-details-section">
+					<h2>Conclusion</h2>
+					<p>In this lab, we created a simple four-track rhythm game to showcase the capabilities of the Urbana Board and explore creative design with FPGA's. It allowed us to gain hands on experience planning and implementing custom designs and exposed us to different uses of the FPGA board beyond simple tutorial demonstrations like the labs. By utilising it in this way, it helped us understand how PWM is generated, how to implement multiple separate clocks driving different areas of the design and implementing and verifying large scale designs requiring multiple smaller components. Additionally, it taught us a lot about how to test and debug non-trivial designs involving heavy use of the FPGA debug core and waveform analyser.</p>
+				</div>
+
+				<div class="project-github-section">
+					<h2>View on GitHub</h2>
+					<p>Explore the complete source code, documentation, and implementation details on GitHub.</p>
+					<a href="https://github.com/mqtang33/FPGA_Rhythm_game.git" target="_blank" class="github-link-button">
+						<i class="fab fa-github"></i>
+						<span>View Project on GitHub</span>
+					</a>
 				</div>
 
 				<div class="project-back-link">
@@ -81,4 +180,3 @@
 	<script src="assets/js/main.js"></script>
 </body>
 </html>
-

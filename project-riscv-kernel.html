@@ -47,21 +47,62 @@
 	<section class="section">
 		<div class="container">
 			<div class="project-content">
-				<div class="project-image-large">
-					<img src="images/pic02.jpg" alt="RISC-V OS Kernel" />
-				</div>
-				
 				<div class="project-description">
 					<h2>Overview</h2>
-					<p>Built a preemptive multitasking kernel entirely in C, incorporating a 100ms time slice round-robin scheduler to manage up to 16 concurrent processes.</p>
+					<p class="collaboration-note">This project was completed in collaboration with <strong>Hausen Wu</strong> and <strong>Delilah Dzulkafli</strong>.</p>
+					<p>This project is a ground-up implementation of a 64-bit, Unix-like operating system kernel for the RISC-V architecture. It is a comprehensive OS that boots on QEMU and features a complete virtual memory system (Sv39), a custom filesystem, preemptive multitasking, and a POSIX-like shell. This project involved building a complete, Unix-like operating system kernel for the 64-bit RISC-V architecture from the ground up. The kernel is capable of booting on QEMU, managing hardware, loading user programs, and running a POSIX-like shell with preemptive multitasking. The kernel was built in three major stages, culminating in a sophisticated system that demonstrates core concepts in operating systems design.</p>
 				</div>
 
 				<div class="project-details-section">
-					<h2>Key Features</h2>
+					<h2>Key Technical Features</h2>
+					
+					<h3>Process & Concurrency Management</h3>
 					<ul class="project-features">
-						<li>Implemented a complete virtual memory system using 3-level Sv39 paging, providing a 500MB virtual address space per process and managing memory in 2048B pages.</li>
-						<li>Developed an interactive shell that supports 4 commands and inter-process piping, enabling complex operations such as two simultaneous program executions.</li>
+						<li><strong>Preemptive Multitasking:</strong> Implemented preemptive multitasking for user-mode processes, driven by timer interrupts, to ensure fair CPU scheduling.</li>
+						<li><strong>Process Primitives (fork, exec, wait, exit):</strong> Built the complete process lifecycle, including a fork() system call that creates a new process by duplicating the parent's virtual memory space.</li>
+						<li><strong>System Call Interface:</strong> Designed and implemented a robust system call handler to securely transition from user-mode to supervisor-mode (ecall) to handle kernel requests.</li>
+						<li><strong>Kernel-Level Threads:</strong> Implemented a kernel-level threading library with synchronization primitives (Locks) for managing internal kernel concurrency.</li>
 					</ul>
+
+					<h3>Virtual Memory (Sv39 Paging)</h3>
+					<ul class="project-features">
+						<li><strong>Sv39 Paging:</strong> Implemented a full virtual memory manager using the RISC-V Sv39 3-level paging scheme, giving each process its own isolated 48-bit virtual address space.</li>
+						<li><strong>Demand Paging (Lazy Allocation):</strong> Wrote a page fault handler that enables demand paging. Physical memory pages are only allocated and mapped when a process first attempts to access them, optimizing memory usage.</li>
+						<li><strong>Page Table Management:</strong> Created functions to map, unmap, and set permissions (Read, Write, Execute, User) for virtual memory ranges.</li>
+					</ul>
+
+					<h3>Filesystem & Storage</h3>
+					<ul class="project-features">
+						<li><strong>KTFS (Kernel File System):</strong> Built a custom, ext2-inspired, block-based filesystem (KTFS) with support for files, directories, and metadata (inodes).</li>
+						<li><strong>Full CRUD Functionality:</strong> The filesystem driver supports complete file operations: create, read, write, delete, and open.</li>
+						<li><strong>Block Device Cache:</strong> Designed and implemented a write-through block cache that sits between the filesystem and the VIRTIO block device, significantly reducing I/O latency by caching frequently accessed disk blocks in memory.</li>
+						<li><strong>VIRTIO Block Device Driver:</strong> Wrote a full-featured driver to interface with the VIRTIO virtualized block device (simulated hard drive).</li>
+					</ul>
+
+					<h3>Program Loading & IPC</h3>
+					<ul class="project-features">
+						<li><strong>ELF Loader:</strong> Wrote an ELF file loader to parse executable binaries from the filesystem, map their code and data segments into a process's new virtual address space, and prepare them for execution.</li>
+						<li><strong>Inter-Process Communication (Pipes):</strong> Implemented anonymous pipes (syspipe) for one-way, in-memory communication between processes, enabling shell pipelines (e.g., program1 | program2).</li>
+					</ul>
+
+					<h3>Device Drivers & Hardware Interface</h3>
+					<ul class="project-features">
+						<li><strong>Core Drivers:</strong> Wrote drivers for essential hardware, including the PLIC (Platform-Level Interrupt Controller), UART (for serial console I/O), and RTC (Real-Time Clock).</li>
+					</ul>
+				</div>
+
+				<div class="project-details-section">
+					<h2>Conclusion</h2>
+					<p>This project successfully integrates fundamental operating system components—from low-level hardware drivers and interrupt handling to high-level abstractions like virtual memory and process management. The result is a stable, multi-process kernel that provides a powerful foundation for running user applications and demonstrates a comprehensive understanding of modern OS design.</p>
+				</div>
+
+				<div class="project-github-section">
+					<h2>View on GitHub</h2>
+					<p>Explore the complete source code, documentation, and implementation details on GitHub.</p>
+					<a href="https://github.com/mqtang33/RISCV-OS-Kernel" target="_blank" class="github-link-button">
+						<i class="fab fa-github"></i>
+						<span>View Project on GitHub</span>
+					</a>
 				</div>
 
 				<div class="project-back-link">
